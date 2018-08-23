@@ -1,0 +1,15 @@
+{
+    "name": "onyx-custom",
+    "version": "0.0.1",
+    "scripts": {
+        "[[theme-1]]": "slate start -e [[theme-1]]",
+        "[[theme-2]]": "slate start -e [[theme-2]]",
+        "[[theme-3]]": "slate start -e [[theme-3]]"
+    },
+    "devDependencies": {
+        "@shopify/slate-tools": "0.13.0"
+    },
+    "dependencies": {
+        "@vimeo/player": "^2.3.0"
+    }
+}
