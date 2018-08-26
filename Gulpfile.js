@@ -16,6 +16,16 @@ if ( process.argv.length > 3 ) {
 }
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Logging Functions
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+const successLog = message => console.log(c.green('[Accelerate] ' + message));
+
+const errorLog = message => console.log(c.red('[Accelerate] ' + message));
+
+const infoLog = message => console.log(c.yellow('[Accelerate] ' + message));
+
+// -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 //  File Processing Functions
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -38,7 +48,7 @@ function copyFile(source, target, cb) {
     function done(err) {
         if (!cbCalled) {
             if (err) {
-                console.log(err);
+                errorLog(`File Create Error: ${err}`);
                 if (cb) {
                     cb(err);
                     cbCalled = true;
@@ -111,7 +121,7 @@ gulp.task('build:instance', () => {
             return;
         }
         if (err) {
-            console.log('Build Error:', err);
+            errorLog(`Build Error: ${err}`);
         }
         // Loop through & process each override file
         files.forEach( file => overwriteBuildFile(file, '/instance/') );
@@ -156,12 +166,12 @@ gulp.task('watch:files', () => {
             let overridePath = filePath.replace(replaceString, `/instance/`);
             // if theres an override file, we're done here
             if ( fs.existsSync(overridePath) ) {
-                console.log(`Not adding ${c.blue(path.basename(filePath))} to build because an override file exists`);
+                infoLog(`Not adding ${c.blue(path.basename(filePath))} to build because an override file exists`)
                 return;
             }
         }
 
-        console.log(`Adding file ${c.blue(path.basename(filePath))} to the build`);
+        successLog(`Adding file ${c.blue(path.basename(filePath))} to the build`)
         overwriteBuildFile(filePath, replaceString);
     });
 
@@ -184,12 +194,12 @@ gulp.task('watch:files', () => {
             let overridePath = filePath.replace(replaceString, `/instance/`);
             // if theres an override file, we're done here
             if ( fs.existsSync(overridePath) ) {
-                console.log(`Not removing ${c.blue(path.basename(filePath))} from build because an override file exists`);
+                infoLog(`Not removing ${c.blue(path.basename(filePath))} from build because an override file exists`);
                 return;
             }
         }
 
-        console.log(`Removing file ${c.blue(path.basename(filePath))} from the build`);
+        successLog(`Removing file ${c.blue(path.basename(filePath))} from the build`);
         removeFile(buildFile);
     });
 
@@ -212,13 +222,13 @@ gulp.task('watch:files', () => {
             let overridePath = filePath.replace(replaceString, `/instance/`);
             // if theres an override file, we're done here
             if ( fs.existsSync(overridePath) ) {
-                console.log(`Not saving changes to core file ${c.blue(path.basename(filePath))} because an override file exists`);
+                infoLog(`Not saving changes to core file ${c.blue(path.basename(filePath))} because an override file exists`);
                 return;
             }
         }
 
         // Overwrite the file
-        console.log(`Saving changes to file ${c.blue(path.basename(filePath))}`);
+        successLog(`Saving changes to file ${c.blue(path.basename(filePath))}`);
         overwriteBuildFile(filePath, replaceString);
     });
 
@@ -229,19 +239,16 @@ gulp.task('watch:files', () => {
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 /**
- * Deploy the theme to the store
+ * Deploy to deploy the theme to the store
  */
 gulp.task('slate:deploy', () => {
     const childProcess = exec(`slate deploy -e --${theme}`, { cwd: paths.build });
 
-    childProcess.on('error', (data) => {
-        console.log(c.red('Error with Slate deploy'), data);
-    });
+    // error handling
+    childProcess.on('error', data => errorLog(`Error with Slate deploy: ${data}`) );
 
-    childProcess.stdout.on('data', (data) => {
-        // console.log(data);
-        process.stdout.write(data);
-    });
+    // data handling
+    childProcess.stdout.on('data', data => process.stdout.write(data) );
 });
 
 /**
@@ -250,13 +257,11 @@ gulp.task('slate:deploy', () => {
 gulp.task('slate:start', () => {
     const childProcess = exec(`npm run ${theme}`, { cwd: paths.build });
 
-    childProcess.on('error', (data) => {
-        console.log(c.red('Error with Slate deploy'), data);
-    });
+    // error handling
+    childProcess.on('error', data => errorLog(`Error with Slate deploy: ${data}`) );
 
-    childProcess.stdout.on('data', (data) => {
-        console.log(data);
-    });
+    // data handling
+    childProcess.stdout.on('data', data => process.stdout.write(data) );
 });
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -267,6 +272,6 @@ gulp.task('watch', () => {
     runSequence('build:theme','watch:files','slate:start');
 });
 
-// gulp.task('build', () => {
-//     runSequence('build:theme','slate:deploy');
-// });
+gulp.task('build', () => {
+    runSequence('build:theme','slate:deploy');
+});
